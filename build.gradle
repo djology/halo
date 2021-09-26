@@ -1,7 +1,7 @@
 plugins {
     id 'org.springframework.boot' version '2.6.0-M3'
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-    id "checkstyle" // Checkstyle is
+    id "checkstyle" // Checkstyle 是 Google 风格的自动化检测插件
     id 'java'
 }
 
@@ -10,16 +10,49 @@ version = '0.0.1-SNAPSHOT'
 description = "Halo fork, open source blog publishing application."
 sourceCompatibility = '11'
 
+Checkstyle {
+    toolVersion = "8.39"
+    showViolations = false
+    ignoreFailures = false
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven { url 'https://repo.spring.io/milestone' }
+    jcenter()
+}
+
 configurations {
+    implementation {
+        exclude module: "spring-boot-starter-tomcat"
+        exclude module: "slf4j-log4j12"
+        exclude module: "junit"
+    }
     compileOnly {
         extendsFrom annotationProcessor
     }
 }
 
-repositories {
-    mavenCentral()
-    maven { url 'https://repo.spring.io/milestone' }
+bootJar { // 配置bootJar进行打包
+    manifest { // 指定依赖包的路径
+        attributes "Implementation-Title": "Halo Application", "Implementation-Version": archiveVersion
+    }
 }
+
+bootBuildImage.doFirst {
+    assert System.getenv("DOCKER_USERNAME") != null
+    assert System.getenv("DOCKER_TOKEN") != null
+}
+
+bootBuildImage {
+    def tagLatest = boolean.valueOf(System.getenv("TAG_LATEST"))
+    def dockerImageName = System.getenv("DOCKER_IMAGE_NAME")
+    def dockerUsername = System.getenv("DOCKER_USERNAME")
+    def dockerToken = System.getenv("DOCKER_TOKEN")
+}
+
+
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter'
